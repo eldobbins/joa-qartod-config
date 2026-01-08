@@ -1,0 +1,113 @@
+# Initial Set-Up
+
+This document describes how the `joa-qartod-config` repository was configured for development work. To use the package, see [Workflow](./workflow.md).
+
+
+## GitHub
+
+Made a new repo in GitHub. I cannot write to https://github.com/JOASurveys, so I'm working in my own account for the moment. It can be transfered to JOA later.
+
+This repo is **public** so that it can be cloned into Google Colab Notebook VMs without fancy permissions. Therefore, this repo should only commit simple functions that do not require access to proprietary information. In the future, if sensitive information is added, `joa-qartod-config` should be converted to a private repo. In that case, there are many ways of giving Colab access. Here is a rundown of methods I found; options come and go, so check what the current options are before diving in.
+
+1. GitHub Personal Access Token (PAT) provides access to an individual person with a GitHub account. The token is created in GitHub and then copied into a Colab secret, which is then used with `oauth2`:
+
+```python
+from google.colab import userdata
+PAT = userdata.get('PAT')
+!git clone https://oauth2:{PAT}@github.com/eldobbins/eldobbins-colab-testing.git
+```
+
+2. GitHub allows SSH [Deploy Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys) to allow access to a repo to anyone with the key. The key is generated in the Colab VM and then copied into GitHub. Since the VM is ephermal, some fussing is required to ensure the key remains. See [colab-github](https://github.com/tsunrise/colab-github) as an example.
+
+3. GitHub says deploy keys [are not secure](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys#deploy-keys) and suggests making a [GitHub App](https://docs.github.com/en/apps/overview) instead. IThis looked like overkill to me, so I did not explore it.
+
+4. Colab can have access to a GitHub account with all the accompanying permissions. But again, that is for an individual, and not and organization. I felt uncomfortable given such sweeping access, so I did not explore it. [Colab's example](https://colab.research.google.com/github/googlecolab/colabtools/blob/master/notebooks/colab-github-demo.ipynb).
+
+5. You could upload the code into Google Drive (for desktop) and then mount its location in the Notebook. The extra steps involved in this would provide lots of ways for the code to get out of sync, so I did not explore it.
+
+
+## UV package management
+
+I expect that there will be many modules of different types we will want to access individually from the Notebooks, rather than a single entry point. So I'm going with the "package" `uv` intialization.
+
+```shell
+$ uv init --package
+$ uv sync
+$ source .venv/bin/activate
+(joa-qartod-config) $ uv add pandas
+(joa-qartod-config) $ uv add sqlalchemy
+(joa-qartod-config) $ uv add mysql-connector-python
+```
+
+I did not add Jupyter to the dependencies because everything will eventually be used in Colab where Jupyter isn't needed. Instead, I start it up as needed with: (Note: `uvx` would ignore the existing environment, so I use `uv run` instead.)
+
+```shell
+(joa-qartod) $ uv run --with jupyter --with bokeh jupyter lab
+```
+
+### Development Environment
+
+Add pytest as an optional dependency in a separate group.
+
+```
+$ uv add pytest --optional testing
+$ uv sync --all-extras  # or
+$ uv sync --extra testing
+```
+
+### Package installation
+
+So the Notebooks can access the code, install the package with `-e` for editable. Then test it.
+
+```
+(joa-qartod-config) $ uv pip install -e .
+(joa-qartod-config) $ joa-qartod-config
+Hello from joa-qartod-config!
+```
+
+## Development Tools
+
+### Pre-commit
+
+Following the example of `joa-qartod`, I'm using `pre-commit` and `ruff` for syntax checking (not using isort or mypy). These are already installed on my machine, so:
+
+```shell
+(joa-qartod-config) $ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+(joa-qartod-config) $ cp ../joa-qartod/.pre-commit-config.yaml .
+(joa-qartod-config) $ pre-commit autoupdate
+(joa-qartod-config) $ pre-commit run
+```
+
+### Ruff
+
+Ruff is configured in pyproject.py.
+
+- Ruff doesn't like print statements. To ignore that, add  ` # noqa: T201` to the end of the print line
+- Internet says `ruff` sometimes doesn't sort imports, but it did for me.
+
+
+### Pytest
+
+Tests are in ./tests/ to separate them from the code. The configuration is in pyproject.py as [tool.pytest.ini_options] rather than in a separate pytest.ini file because that is what the [Scientific Python Library Development Guide](https://learn.scientific-python.org/development/guides/pytest/#testing-with-pytest) did. testpath is set to only tests/ so tests in other places should be ignored.
+
+
+## Colab
+
+No need to install uv because that is now included in the VM. You can dive right in!
+
+```
+# Example: clone a repository first
+# !git clone github.com
+# %cd your-custom-package
+
+# Install the package in editable mode using the --system flag
+!uv pip install --system -e .
+```
+
+The --system flag is necessary because Colab runs in a non-standard environment where uv cannot easily create its typical virtual environments. -e is for editable.
+
+## More Info
+
+- [example of Colab secrets](https://colab.research.google.com/github/aisawanj/Example_using_Secrets_in_Google_Colab/blob/main/Example_using_Secrets_in_Google_Colab.ipynb#scrollTo=GAbo80dWui2t)
+- [ways of getting custom code into the VM](https://www.geeksforgeeks.org/techtips/how-to-import-custom-modules-in-google-colab/)

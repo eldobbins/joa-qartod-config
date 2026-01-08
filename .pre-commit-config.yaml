@@ -1,0 +1,42 @@
+# These done 10/1/2025
+# brew install pre-commit (mac)
+# sudo apt-get install pre-commit (linux mint)
+# pre-commit install
+# pre-commit run
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v6.0.0"
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: name-tests-test
+        args: ["--pytest-test-first"]
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.14.11"
+    hooks:
+      - id: ruff
+        args: ["--fix", "--show-fixes"]
+
+#  - repo: https://github.com/pycqa/isort   10/28/2025 isort being a pill with multiline imports
+#    rev: 6.1.0
+#    hooks:
+#      - id: isort
+#        name: isort (python)
+#        args: ["-m", "NOQA"]
+
+#  - repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: "v1.15.0"
+#    hooks:
+#      - id: mypy
+#        files: src|tests
+#        args: ["--disable-error-code=import-untyped", "--disable-error-code=import-not-found"]
