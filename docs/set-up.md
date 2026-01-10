@@ -37,13 +37,18 @@ $ source .venv/bin/activate
 (joa-qartod-config) $ uv add pandas
 (joa-qartod-config) $ uv add sqlalchemy
 (joa-qartod-config) $ uv add mysql-connector-python
+(joa-qartod-config) $ uv add ioos-qc
+(joa-qartod-config) $ uv add jupyter-bokeh   # includes bokeh
+(joa-qartod-config) $ uv add python-dotenv
 ```
 
 I did not add Jupyter to the dependencies because everything will eventually be used in Colab where Jupyter isn't needed. Instead, I start it up as needed with: (Note: `uvx` would ignore the existing environment, so I use `uv run` instead.)
 
 ```shell
-(joa-qartod) $ uv run --with jupyter --with bokeh jupyter lab
+(joa-qartod) $ uv run --with jupyter jupyter notebook
 ```
+
+I was having some trouble getting code to produce the same output in Colab and a local Jupyter server using JupyterLab, because Colab branched Jupyter before a new architecture was implemented for JupyterLab 3.0. For instance, "classic" Notebooks and Colab do not need jupyter-bokeh as a link between Bokeh's JavaScript output and Jupyter's Python, but JupyterLab does. See [Bokeh's User Guide](https://docs.bokeh.org/en/latest/docs/user_guide/output/jupyter.html) for more information.
 
 ### Development Environment
 
@@ -94,18 +99,28 @@ Tests are in ./tests/ to separate them from the code. The configuration is in py
 
 ## Colab
 
+### Local Development
+
+Notebooks must work the same locally (for local database access) and in Colab (a the desired product for JOA).
+
+### Integration with GitHub package
 No need to install uv because that is now included in the VM. You can dive right in!
 
-```
-# Example: clone a repository first
-# !git clone github.com
-# %cd your-custom-package
-
+```python
+!git clone https://github.com/eldobbins/joa-qartod-config.git
 # Install the package in editable mode using the --system flag
-!uv pip install --system -e .
+!uv pip install --system -e joa-qartod-config
+# test that it works. Should return the uv default set-up "Hello from joa-qartod-config!"
+!joa-qartod-config
 ```
 
 The --system flag is necessary because Colab runs in a non-standard environment where uv cannot easily create its typical virtual environments. -e is for editable.
+
+You also need to do this for IOOS-QARTOD because that is not in the Colab environment. If you use the other form, `from ioos_qc.config import Config` will fail with `ModuleNotFound`.
+```python
+!git clone https://github.com/ioos/ioos_qc
+!python -m pip install ioos_qc
+```
 
 ## More Info
 

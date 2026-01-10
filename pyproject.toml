@@ -8,8 +8,12 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "ioos-qc>=2.3.0",
+    "jupyter-bokeh>=4.0.5",
     "mysql-connector-python>=9.5.0",
     "pandas>=2.3.3",
+    "python-dotenv>=1.2.1",
+    "simplejson>=3.20.2",
     "sqlalchemy>=2.0.45",
 ]
 
