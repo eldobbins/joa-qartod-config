@@ -112,6 +112,11 @@ No need to install uv because that is now included in the VM. You can dive right
 !uv pip install --system -e joa-qartod-config
 # test that it works. Should return the uv default set-up "Hello from joa-qartod-config!"
 !joa-qartod-config
+
+# for some reason it needs this extra nudge or it can't find the module
+import site
+for sitepackages in site.getsitepackages():
+    site.addsitedir(sitepackages)
 ```
 
 The --system flag is necessary because Colab runs in a non-standard environment where uv cannot easily create its typical virtual environments. -e is for editable.
