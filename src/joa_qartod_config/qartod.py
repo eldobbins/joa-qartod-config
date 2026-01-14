@@ -103,10 +103,6 @@ def config_generator(stream='rh'):
       readout_format='.5f',
   )
 
-  # arrange the 3 sliders in the Notebook cell
-  display(VBox([caption1, top_slider, bottom_slider,
-                caption2, rate_of_change]))
-
   # make a button that copies the configuration string into a new widget
   # # in order to share the string with the calling Notebook
   output_text = widgets.Text(description="empty")  # value of this will hold the configuration
@@ -121,7 +117,11 @@ def config_generator(stream='rh'):
       print('Configuration is: ', output_text.value) # noqa: T201
 
   button.on_click(on_button_clicked)
-  display(button, output)
+  # arrange the 3 sliders in the Notebook cell
+  display(VBox([caption1, top_slider, bottom_slider,
+                caption2, rate_of_change]),
+                button,
+                output)
   return output_text  # return the container widget to the calling Notebook
 
 def foo():
