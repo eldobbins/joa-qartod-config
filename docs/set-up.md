@@ -38,14 +38,14 @@ $ source .venv/bin/activate
 (joa-qartod-config) $ uv add sqlalchemy
 (joa-qartod-config) $ uv add mysql-connector-python
 (joa-qartod-config) $ uv add ioos-qc
-(joa-qartod-config) $ uv add jupyter-bokeh   # includes bokeh
 (joa-qartod-config) $ uv add python-dotenv
+(joa-qartod-config) $ uv add "ipywidgets>=7,<8"
 ```
 
-I did not add Jupyter to the dependencies because everything will eventually be used in Colab where Jupyter isn't needed. Instead, I start it up as needed with: (Note: `uvx` would ignore the existing environment, so I use `uv run` instead.)
+Using ipywidgets, I cannot seem to avoid installing Jupyter even though everything will eventually be used in Colab where Jupyter isn't needed. Instead, I start it up as needed with: (Note: `uvx` would ignore the existing environment, so I use `uv run` instead.)
 
 ```shell
-(joa-qartod) $ uv run --with jupyter jupyter notebook
+(joa-qartod) $ uv run --with jupyter-bokeh jupyter lab
 ```
 
 I was having some trouble getting code to produce the same output in Colab and a local Jupyter server using JupyterLab, because Colab branched Jupyter before a new architecture was implemented for JupyterLab 3.0. For instance, "classic" Notebooks and Colab do not need jupyter-bokeh as a link between Bokeh's JavaScript output and Jupyter's Python, but JupyterLab does. See [Bokeh's User Guide](https://docs.bokeh.org/en/latest/docs/user_guide/output/jupyter.html) for more information.
@@ -102,6 +102,8 @@ Tests are in ./tests/ to separate them from the code. The configuration is in py
 ### Local Development
 
 Notebooks must work the same locally (for local database access) and in Colab (a the desired product for JOA).
+
+There is a bug in Colab with ipywidgets 8.0.8 that treats my code as a "third party widget". It disables the slider bars. For these to work, the dependencies must be fixed to "ipywidgets>=7,<8". This limits the version of jupyter-bokeh to v3 because the newest version relies on ipywidgets v8. So I've got ipywidgets in the requirements, and import bokeh when starting a local Notebook. Colab should work OK.
 
 ### Integration with GitHub package
 No need to install uv because that is now included in the VM. You can dive right in!
