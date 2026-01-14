@@ -19,11 +19,11 @@ def run_qartod(data, context_configs):
   return collect_results(results, how="list")
 
 
-def make_config_dict(gross_range_fail, gross_range_suspect, rate_of_change_threshold):
+def make_config_dict(stream, gross_range_fail, gross_range_suspect, rate_of_change_threshold):
   """ To add parameters to a QARTOD configuration dictionary """
   return {
     "streams": {
-      "rh": {
+      stream: {
         "qartod": {
           "gross_range_test": {
               "fail_span": gross_range_fail,
@@ -38,24 +38,46 @@ def make_config_dict(gross_range_fail, gross_range_suspect, rate_of_change_thres
   }
 
 
-def config_generator ():
+def choose_stream():
+  """Choose between representations of sea surface height
+  ssl is relative to a datum and rh is not, so acceptable ranges will be different """
+  choose_stream = widgets.Dropdown(
+      options=['rh', 'sea_surface_height_above_sea_level'],
+      value='rh',
+      description='Stream:',
+      disabled = False
+  )
+
+  display(choose_stream)
+  return choose_stream
+
+
+def config_generator(stream='rh'):
   """ Use Jupyter Widgets (sliders) to set configuration parameters for QARTOD """
+
+  span_min = 0
+  span_max = 100
+  default_rate_of_change = .0006
+  if stream == 'sea_surface_height_above_sea_level':
+    span_min = -10
+    span_max = 10
+    default_rate_of_change = .001
 
   # two interdependent sliders for the gross range tests
   caption1 = widgets.Label(value='Gross Range Test Parameters')
   gr_fail = widgets.FloatRangeSlider(
-      value=[5, 50.0],
-      min=0,
-      max=100.0,
-      step=0.1,
+      value=[span_min, span_max],
+      min=span_min,
+      max=span_max,
+      step=.1,
       readout=True,
       readout_format='.1f',
   )
   gr_suspect = widgets.FloatRangeSlider(
-      value=[10, 40.0],
-      min=0,
-      max=100.0,
-      step=0.1,
+      value=[span_min, span_max],
+      min=span_min,
+      max=span_max,
+      step=.1,
       readout=True,
       readout_format='.1f',
   )
@@ -73,12 +95,12 @@ def config_generator ():
   # a new slider for rate of change
   caption2 = widgets.Label(value='\n\nRate of Change Test Threshold')
   rate_of_change = widgets.FloatSlider(
-      value=0.1,
+      value=default_rate_of_change,
       min=0,
-      max=1,
-      step=0.01,
+      max=default_rate_of_change*10,
+      step=default_rate_of_change/10,
       readout=True,
-      readout_format='.1f',
+      readout_format='.5f',
   )
 
   # arrange the 3 sliders in the Notebook cell
@@ -94,7 +116,7 @@ def config_generator ():
   def on_button_clicked(b): # noqa: ARG001
     # Display the message within the output widget.
     with output:
-      config = make_config_dict(gr_fail.value, gr_suspect.value, rate_of_change.value)
+      config = make_config_dict(stream, gr_fail.value, gr_suspect.value, rate_of_change.value)
       output_text.value = json.dumps(config)  # value of Text must be a string
       print('Configuration is: ', output_text.value) # noqa: T201
 
