@@ -105,6 +105,29 @@ Notebooks must work the same locally (for local database access) and in Colab (a
 
 There is a bug in Colab with ipywidgets 8.0.8 that treats my code as a "third party widget". It disables the slider bars. For these to work, the dependencies must be fixed to "ipywidgets>=7,<8". This limits the version of jupyter-bokeh to v3 because the newest version relies on ipywidgets v8. So I've got ipywidgets in the requirements, and import bokeh when starting a local Notebook. Colab should work OK.
 
+### Running Colab with local kernel
+
+To test with a local database, I had to either make the database available via the internet, or run the Colab Notebook locally. I chose the latter option. To do that,
+
+1. Start up a Jupyter service with `uv run --with jupyter-bokeh jupyter lab` (or whatever)
+
+2. One of the lines output to the screen by the startup looks like `http://localhost:8888/lab?token=63dfab2d6732c07fd65d1a2838efc17bc064a041b1a7924f`  This is the backend URL. Copy that.
+
+3. Start up a Colab Notebook. In the upper right (below the Share button), is the access to the runtimes. Click the down menu icon next to "Connect" and choose "Connect to a local runtime".
+
+4. Paste the backend URL into the resulting dialog box. Click connect. "Connected (Local)" with a green checkmark should appear.
+
+Here are some things to note:
+
+- Your current working directory will be the directory in which you started Jupyter on your local machine. The contents of that directory will show up in Colab Files (interface on the left)
+
+- You are running in your local environment and will have all the packages already installed there (because you started the Jupyter server with `uv run`).
+  - You lose access to Colab secrets.
+  - You lose access to the `google` library, so no more `from google.colab import userdata`.
+
+- If you want to install another package, use some command line magic like `!uv pip install -e ../joa-qartod/`
+
+
 ### Integration with GitHub package
 No need to install uv because that is now included in the VM. You can dive right in!
 
