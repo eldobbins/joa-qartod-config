@@ -1,23 +1,36 @@
 from __future__ import annotations
 
+import math
+
 import ipywidgets as widgets
+import pandas as pd
 import simplejson as json
 from ioos_qc.config import Config
-from ioos_qc.results import collect_results
+from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
 from IPython.display import display
 from ipywidgets import HBox, Label, VBox
 
 
 def run_qartod(data, configs):
+  """ Run qartod on data in a Dataframe and return results appended to that dataframe.
+  This mimics the use of QARTOD in joa-qartod, but is included here in case that package is
+  not available.
+  """
   # Convert the data to a Stream (Pandas dataframe to a PandasStream)
   pandas_stream = PandasStream(data)
 
   # Pass the run method the config to use
   results = pandas_stream.run(Config(configs))
 
-  # Then collect all the results into a single list
-  return collect_results(results, how="list")
+  # store the results
+  store = PandasStore(results)
+
+  # Write only the test results to the store
+  results_store = store.save(write_data=False, write_axes=False)
+
+  # Append columns from qc results back into the data
+  return pd.concat([data, results_store], axis=1)
 
 
 def make_config_dict(stream, gross_range_fail, gross_range_suspect, rate_of_change_threshold):
@@ -53,19 +66,13 @@ def choose_stream():
   return choose_stream
 
 
-def config_generator(stream='rh'):
+def config_generator(stream='rh',gr_span=(0,100), roc_max=1):
   """ Use Jupyter Widgets (sliders) to set configuration parameters for QARTOD """
-
-  span_min = 0
-  span_max = 100
-  default_rate_of_change = .0006
-  if stream == 'sea_surface_height_above_sea_level':
-    span_min = -10
-    span_max = 10
-    default_rate_of_change = .001
 
   # two interdependent sliders for the gross range tests
   caption1 = widgets.Label(value='Gross Range Test Parameters')
+  span_min = math.floor(gr_span[0])
+  span_max = math.ceil(gr_span[1])
   gr_fail = widgets.FloatRangeSlider(
       value=[span_min, span_max],
       min=span_min,
@@ -94,14 +101,14 @@ def config_generator(stream='rh'):
   gr_fail.observe(update_suspect, 'value')
 
   # a new slider for rate of change
+  # aiming for the maximum possible on the high side of a base 10 log scale
   caption2 = widgets.Label(value='\n\nRate of Change Test Threshold')
-  rate_of_change = widgets.FloatSlider(
-      value=default_rate_of_change,
-      min=0,
-      max=default_rate_of_change*10,
-      step=default_rate_of_change/10,
-      readout=True,
-      readout_format='.5f',
+  rate_of_change = widgets.FloatLogSlider(
+    value=roc_max,
+    base=10,
+    min=math.log10(roc_max) - 2, # min exponent of base
+    max=math.log10(roc_max) + .3, # max exponent of base
+    step=0.1, # exponent step
   )
 
   # make a button that copies the configuration string into a new widget

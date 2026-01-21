@@ -45,7 +45,7 @@ $ source .venv/bin/activate
 Using ipywidgets, I cannot seem to avoid installing Jupyter even though everything will eventually be used in Colab where Jupyter isn't needed. Instead, I start it up as needed with: (Note: `uvx` would ignore the existing environment, so I use `uv run` instead.)
 
 ```shell
-(joa-qartod) $ uv run --with jupyter-bokeh jupyter lab
+(joa-qartod) $ uv run --with bokeh jupyter lab
 ```
 
 I was having some trouble getting code to produce the same output in Colab and a local Jupyter server using JupyterLab, because Colab branched Jupyter before a new architecture was implemented for JupyterLab 3.0. For instance, "classic" Notebooks and Colab do not need jupyter-bokeh as a link between Bokeh's JavaScript output and Jupyter's Python, but JupyterLab does. See [Bokeh's User Guide](https://docs.bokeh.org/en/latest/docs/user_guide/output/jupyter.html) for more information.
