@@ -20,6 +20,7 @@ def plot_data(df, var_name, station, title):
     p1.yaxis.axis_label = "Observation Value"
 
     p1.line(x='time', y=var_name, source=source, legend_label="obs", color="#A6CEE3")
+    p1.scatter(x='time', y=var_name, source=source, size=3, color="blue")
 
     show(gridplot([[p1]], width=800, height=400))
 
@@ -49,6 +50,7 @@ def plot_data_dt(df, var_name, station, title):
     p1.yaxis.axis_label = "Rate of Change"
 
     p1.line(x='time', y='dxdt', source=source, legend_label="obs", color="#A6CEE3")
+    p1.scatter(x='time', y='dxdt', source=source, size=3, color="blue")
 
     show(gridplot([[p1]], width=800, height=400))
     return time_derivative

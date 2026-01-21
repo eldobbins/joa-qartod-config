@@ -66,15 +66,25 @@ def choose_stream():
   return choose_stream
 
 
-def config_generator(stream='rh',gr_span=(0,100), roc_max=1):
+def config_generator(stream='rh',gr_span=(0,100), roc_max=1, qc_config=None):
   """ Use Jupyter Widgets (sliders) to set configuration parameters for QARTOD """
+
+  # get slider limits from the arguments
+  span_min = math.floor(gr_span[0])
+  span_max = math.ceil(gr_span[1])
+  # use values from a pre-existing configuration dictionary, if it exists
+  fail_values = [span_min, span_max]
+  suspect_values = [span_min, span_max]
+  roc_value = roc_max
+  if qc_config:
+    roc_value = qc_config["streams"]["rh"]["qartod"]["rate_of_change_test"]["threshold"]
+    fail_values = qc_config["streams"]["rh"]["qartod"]["gross_range_test"]["fail_span"]
+    suspect_values = qc_config["streams"]["rh"]["qartod"]["gross_range_test"]["suspect_span"]
 
   # two interdependent sliders for the gross range tests
   caption1 = widgets.Label(value='Gross Range Test Parameters')
-  span_min = math.floor(gr_span[0])
-  span_max = math.ceil(gr_span[1])
   gr_fail = widgets.FloatRangeSlider(
-      value=[span_min, span_max],
+      value=fail_values,
       min=span_min,
       max=span_max,
       step=.1,
@@ -82,7 +92,7 @@ def config_generator(stream='rh',gr_span=(0,100), roc_max=1):
       readout_format='.1f',
   )
   gr_suspect = widgets.FloatRangeSlider(
-      value=[span_min, span_max],
+      value=suspect_values,
       min=span_min,
       max=span_max,
       step=.1,
@@ -104,7 +114,7 @@ def config_generator(stream='rh',gr_span=(0,100), roc_max=1):
   # aiming for the maximum possible on the high side of a base 10 log scale
   caption2 = widgets.Label(value='\n\nRate of Change Test Threshold')
   rate_of_change = widgets.FloatLogSlider(
-    value=roc_max,
+    value=roc_value,
     base=10,
     min=math.log10(roc_max) - 2, # min exponent of base
     max=math.log10(roc_max) + .3, # max exponent of base
